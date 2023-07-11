@@ -35,13 +35,41 @@ function App() {
     }
   };
 
+  const dbinit = async () => {
+    try {
+      const response = await axios.post(URL + "/dbinit");
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const tbinit = async () => {
+    try {
+      const response = await axios.post(URL + "/tbinit");
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="App">
       <h1>User Submit Form</h1>
       <input name="input-parameter" onChange={handleChange} />
       <br />
       <br />
-      <button onClick={postData}>Submit</button>
+      <button onClick={postData}>Submit</button> <br />
+      <br />
+      <button style={{ backgroundColor: "red" }} onClick={dbinit}>
+        DB Init
+      </button>
+      <br />
+      <br />
+      <button style={{ backgroundColor: "orange" }} onClick={tbinit}>
+        Table Init
+      </button>
+      <br />
       <hr />
       <h2>Users List</h2>
       <center>

@@ -29,6 +29,29 @@ const databaseInit = () => {
   });
 };
 
+const createDatabase = () => {
+  con.query("CREATE DATABASE IF NOT EXISTS appdb", (err, results) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log("Database created successfully");
+  });
+};
+
+const createTable = () => {
+  con.query(
+    "CREATE TABLE IF NOT EXISTS apptb (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))",
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log("Table created successfully");
+    }
+  );
+};
+
 // GET request
 app.get("/user", (req, res) => {
   databaseInit();
@@ -56,6 +79,18 @@ app.post("/user", (req, res) => {
       }
     }
   );
+});
+
+app.post("/dbinit", (req, res) => {
+  databaseInit();
+  createDatabase();
+  res.json("Database created successfully");
+});
+
+app.post("/tbinit", (req, res) => {
+  databaseInit();
+  createTable();
+  res.json("Table created successfully");
 });
 
 // Start the server
