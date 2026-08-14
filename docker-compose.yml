@@ -1,41 +1,47 @@
 version: "3.8"
 
 services:
-  db: # Defines the 'db' service for MySQL database
-    image: mysql:8.0 # Uses the MySQL 8.0 Docker image
-    environment: # Sets environment variables for the database configuration
-      - MYSQL_DATABASE=appdb # Specifies the name of the database
-      - MYSQL_PASSWORD=pass123 # Sets the password for the MySQL user
-      - MYSQL_ROOT_PASSWORD=pass123 # Sets the root password for MySQL
+  mysql:
+    restart: always
+    image: mysql
+    environment:
+      - MYSQL_DATABASE=appdb
+      - MYSQL_PASSWORD=pass123
+      - MYSQL_ROOT_PASSWORD=pass123
     networks:
-      - sameNetworkAsMysql # Connects the service to the 'sameNetworkAsMysql' network
-    ports:
-      - 3307:3306 # Maps the container's port 3306 to the host's port 3307
+      - project-net
     volumes:
-      - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+      - ./mysql-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -ppass123 || exit 1"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
 
-  api: # Defines the 'api' service for the backend API
-    build: # Builds the backend API using the provided Dockerfile
-      context: ./backend # Specifies the build context directory for the backend
-      dockerfile: Dockerfile # Specifies the Dockerfile to use for building the backend
+  backend:
+    build:
+      context: ./backend
     ports:
-      - 3000:3000 # Maps the container's port 3000 to the host's port 3000
+      - "3000:3000"
     networks:
-      - sameNetworkAsMysql # Connects the service to the 'sameNetworkAsMysql' network
+      - project-net
     depends_on:
-      - db # Specifies that the 'api' service depends on the 'db' service
+      mysql:
+        condition: service_healthy   
 
-  frontend: # Defines the 'frontend' service for the frontend app
-    restart: on-failure # Restarts the container if it fails
-    build: # Builds the frontend app using the provided Dockerfile
-      context: ./frontend # Specifies the build context directory for the frontend
+  frontend:
+    restart: on-failure
+    build:
+      context: ./frontend
     ports:
-      - 3001:3000 # Maps the container's port 3000 to the host's port 3001
+      - "3001:3000"
     networks:
-      - sameNetworkAsMysql # Connects the service to the 'sameNetworkAsMysql' network
+      - project-net
     depends_on:
-      - api # Specifies that the 'frontend' service depends on the 'api' service
+      - backend
+        
 
 networks:
-  sameNetworkAsMysql: # Defines the 'sameNetworkAsMysql' network
-    driver: bridge # Specifies the network driver as 'bridge'
+  project-net:
+volumes:
+  mysql-db:
